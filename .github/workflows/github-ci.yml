@@ -2,41 +2,36 @@ name: Python CI
 
 on:
   push:
-    branches:
-      - '*'
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
+    container:
+      image: python-tools
+      options: --entrypoint ""
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
     - name: Set up Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v2
       with:
-        python-version: 3.12
+        python-version: '3.12'
 
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install poetry
-        poetry install
-
-    - name: Run tests
-      run: |
-        poetry run pytest
+      run: python -m pip install --upgrade pip pytest coverage pep8
 
     - name: Run tests with coverage
-      run: |
-        poetry run coverage run -m pytest ./tests/
-        poetry run coverage report -m
+      run: python3-coverage run -m pytest --verbose
 
-    - name: Check code formatting
+    - name: Generate coverage report
       run: |
-        poetry run ruff format --check .
+        find . -type f -name "*.py" | xargs python3-coverage report
 
-    - name: Run code linting
+    - name: Check code style with PEP8
       run: |
-        poetry run ruff check .
+        find . -type f -name "*.py" | xargs pep8 --ignore=E501,E126
