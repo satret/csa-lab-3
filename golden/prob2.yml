@@ -1,0 +1,16 @@
+- name: prob2_test_fibonacci_even_sum
+  description: Tests calculating the sum of even Fibonacci numbers not exceeding 4,000,000.
+  in_source: |-
+    ; Your prob2.asm program setup here
+  in_stdin: |-
+    ; No input as the calculation does not depend on external input
+  out_code: |-
+    ; Expected instruction outcomes after running your program
+  out_stdout: |-
+    source LoC: <line_count> code instr: <instruction_count>
+    ============================================================
+    Output: ['4613732']
+    Instruction number: <total_instructions_run>
+    Ticks: <total_ticks>
+  out_log: |-
+    ; Expected log detailing execution steps

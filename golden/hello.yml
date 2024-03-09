@@ -1,0 +1,16 @@
+- name: hello_test_basic_output
+  description: Tests printing "hello world" hardcoded in the program without any input.
+  in_source: |-
+    ; Your hello.asm program setup here
+  in_stdin: |-
+    ; No input required as the string is hardcoded
+  out_code: |-
+    ; Expected instruction outcomes after running your program
+  out_stdout: |-
+    source LoC: <line_count> code instr: <instruction_count>
+    ============================================================
+    Output: ['hello world']
+    Instruction number: <total_instructions_run>
+    Ticks: <total_ticks>
+  out_log: |-
+    ; Expected log detailing execution steps
