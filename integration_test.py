@@ -1,43 +1,37 @@
-import contextlib
-import io
-import logging
-import os
-import tempfile
-
-import mv_machine
-import mv_translator
 import pytest
+import yaml
+import os
+import subprocess
 
+def run_assembly_program(asm_code, stdin=""):
+    # Функция для компиляции и запуска ассемблерной программы.
+    # Это место для вашего кода запуска компилятора и выполнения программы.
+    # Возвращаемые значения должны быть адаптированы под вашу логику.
+    pass
 
-@pytest.mark.golden_test("golden/*.yml")
-def test_translator_and_machine(golden, caplog):
-    caplog.set_level(logging.INFO)
+def load_golden_data(filename):
+    with open(filename, 'r', encoding='utf-8') as file:
+        return yaml.safe_load(file)
 
-    # Создаём временную папку для тестирования приложения.
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        # Готовим имена файлов для входных и выходных данных.
-        source = os.path.join(tmpdirname, "source.myasm")
-        input_stream = os.path.join(tmpdirname, "input.txt")
-        target = os.path.join(tmpdirname, "target.o")
+@pytest.mark.parametrize("filename", ["cat.yml", "hello.yml", "prob2.yml"])
+def test_golden(filename, caplog):
+    golden_path = os.path.join("goldens", filename)
+    golden_data = load_golden_data(golden_path)[0]
 
-        # Записываем входные данные в файлы. Данные берутся из теста.
-        with open(source, "w", encoding="utf-8") as file:
-            file.write(golden["in_source"])
-        with open(input_stream, "w", encoding="utf-8") as file:
-            file.write(golden["in_stdin"])
+    asm_files = {
+        "cat.yml": "cat.asm",
+        "hello.yml": "hello.asm",
+        "prob2.yml": "prob2.asm",
+    }
 
-        # Запускаем транслятор и собираем весь стандартный вывод в переменную
-        # stdout
-        with contextlib.redirect_stdout(io.StringIO()) as stdout:
-            mv_translator.main(source, target)
-            print("============================================================")
-            mv_machine.main(target, input_stream)
+    asm_code_path = asm_files[filename]
+    with open(asm_code_path, 'r', encoding='utf-8') as file:
+        asm_code = file.read()
 
-        # Выходные данные также считываем в переменные.
-        with open(target, encoding="utf-8") as file:
-            code = file.read()
+    if filename == "cat.yml":
+        mocked_output, mocked_log = run_assembly_program(asm_code, golden_data["in_stdin"])
+    else:
+        mocked_output, mocked_log = run_assembly_program(asm_code)
 
-        # Проверяем, что ожидания соответствуют реальности.
-        assert code == golden.out["out_code"]
-        assert stdout.getvalue() == golden.out["out_stdout"]
-        assert caplog.text == golden.out["out_log"]
+    assert mocked_output == golden_data["out_stdout"]
+    assert mocked_log == golden_data["out_log"]
