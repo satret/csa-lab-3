@@ -6,6 +6,7 @@ authors = ["satret <artur-stepanov-03@mail.ru>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+PyYAML = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2.7"
