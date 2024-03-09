@@ -28,7 +28,7 @@ def assemble_and_run(asm_file):
 @pytest.mark.parametrize("test_case", ["cat", "hello", "prob2"])
 def test_assembly_examples(test_case):
     asm_file = f"examples/{test_case}.asm"
-    expected_output_file = f"goldens/{test_case}.yml"
+    expected_output_file = f"golden/{test_case}.yml"
 
     # Запустить .asm файл и получить его вывод
     output = assemble_and_run(asm_file)
