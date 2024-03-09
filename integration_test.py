@@ -1,41 +1,35 @@
+import contextlib
+import io
+import logging
+import os
+import sys
+import tempfile
+from machine import translator
+from machine import  simulation
 import pytest
-import yaml
-from pathlib import Path
-from machine.simulation import simulation
-from machine.translator import parse_code
 
-def read_asm_file(filename):
-    with open(filename, 'r') as file:
-        return file.readlines()
+@pytest.mark.golden_test("golden/*.yml")
+def test_translator_and_machine(golden, caplog):
+    caplog.set_level(logging.DEBUG)
 
-def read_golden_file(filename):
-    with open(filename, 'r') as file:
-        return yaml.safe_load(file)
+    with tempfile.TemporaryDirectory() as tmp_dir_name:
+        source = os.path.join(tmp_dir_name, "code")
+        out_bin = os.path.join(tmp_dir_name, "out")
+        input_stream = os.path.join(tmp_dir_name, "input")
+        debug = os.path.join(tmp_dir_name, "debug")
 
-def assemble_and_run(asm_file):
-    # Считываем исходный ассемблерный код
-    asm_code = read_asm_file(asm_file)
+        with open(source, "w", encoding="utf-8") as file:
+            file.write(golden["in_source"])
+        with open(input_stream, "w", encoding="utf-8") as file:
+            file.write(golden["in_stdin"])
 
-    # Транслируем ассемблерный код в машинный код
-    data_memory, instructions = parse_code(asm_code)
+        with contextlib.redirect_stdout(io.StringIO()) as stdout:
+            translator.main(source, out_bin, debug)
+            simulation.main(out_bin, input_stream)
 
-    # Запускаем симуляцию. Предполагаем, что ввод для машины пустой и размер памяти - 256
-    output = simulation({'data': data_memory, 'code': instructions}, input_tokens=[], data_memory_size=256, simulation_limit=1000)
+        with open(debug, encoding="utf-8") as file:
+            log = file.read()
 
-    return output
-
-
-@pytest.mark.parametrize("test_case", ["cat", "hello", "prob2"])
-def test_assembly_examples(test_case):
-    asm_file = f"examples/{test_case}.asm"
-    expected_output_file = f"golden/{test_case}.yml"
-
-    # Запустить .asm файл и получить его вывод
-    output = assemble_and_run(asm_file)
-
-    # Загрузить ожидаемый вывод из .yml файла
-    with open(expected_output_file) as f:
-        expected_output = yaml.safe_load(f)
-
-    # Сравнить фактический вывод с ожидаемым
-    assert output == expected_output, f"Вывод для {test_case} не соответствует ожидаемому."
+        assert caplog.text == golden.out["machine_log"]
+        assert log == golden.out["translator_log"]
+        assert stdout.getvalue() == golden.out["out_stdout"]

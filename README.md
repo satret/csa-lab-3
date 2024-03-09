@@ -1,7 +1,7 @@
 # Лабораторная работа #3
 Степанов Артур P33131
 
-Вариант: `alg | cisc | harv | hw | tick | struct | stream | port | cstr | prob2 | [4]char`
+Вариант: `asm | acc | harv | hw | tick | struct | stream | port | cstr | prob2 | [4]char`
 
 
 ## Структура проекта
