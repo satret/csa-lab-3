@@ -1,6 +1,172 @@
-- name: hello_test_basic_output
-  description: Tests printing "hello world" hardcoded in the program without any input.
-  in_source: "section .data\n    curr_char: word 1\n    hellow: db 'hello world'\n    null_term: word 0\n\nsection .text\n    print:\n        ld $curr_char  ; загружаю символ по адресу curr_char\n        cmp #0  ; сравниваю, закончилась ли строка\n        je .exit\n        out\n        ld curr_char\n        add #1\n        st curr_char\n        jmp .print\n    exit:\n        hlt"
-  in_stdin: ""
-  out_stdout: "hello world"
-  out_log: "The program should output the hardcoded string 'hello world' without requiring any input."
+in_source: |-
+  section .data
+      addr: 0
+      hello: "Hello world!"
+  section .text
+      xor %rax %rax
+      mov %rcx #hello
+      mov %rdx &hello
+      .loop
+          add %rdx 1
+          mova  %rdx &addr
+          sub %rcx 1
+          mov %rax *addr
+          movo %rax !1
+          cmp %rcx 0
+          jz .end
+          jmp .loop
+      .end
+          hlt
+in_stdin: |-
+  []
+translator_log: |
+  00000 - 05110000 - xor %rax %rax
+  00001 - 0912030000000002 - mov %rcx #hello
+  00003 - 0910020000000002 - mov %rdx &hello
+  00005 - 0010020000000001 - add %rdx 1
+  00007 - 0c10020000000001 - mova  %rdx &addr
+  00009 - 0110030000000001 - sub %rcx 1
+  00011 - 0914000000000001 - mov %rax *addr
+  00013 - 0b130001 - movo %rax !1
+  00014 - 0810030000000000 - cmp %rcx 0
+  00016 - 0e000012 - jz .end
+  00017 - 0d000005 - jmp .loop
+  00018 - 16000000 - hlt
+  ==============================
+  0
+  0
+  12
+  72
+  101
+  108
+  108
+  111
+  32
+  119
+  111
+  114
+  108
+  100
+  33
+
+out_stdout: |
+  source LoC: 18 code instr: 12
+  ============================================================
+  Hello world!
+  instr_counter: 99 ticks: 298
+
+machine_log: |
+  INFO    machine:command_cycle Tick: 0 | Registers: rax: 0, rbx: 0, rdx: 0, rcx: 0, rip: 0, rst: 0, rsp: 65536 Flags: N = False, Z = True | Command: nop | Instruction: 
+  INFO    machine:command_cycle Tick: 3 | Registers: rax: 0, rbx: 0, rdx: 0, rcx: 0, rip: 1, rst: 0, rsp: 65536 Flags: N = False, Z = True | Command: xor | Instruction: 05110000
+  INFO    machine:command_cycle Tick: 7 | Registers: rax: 0, rbx: 0, rdx: 0, rcx: 12, rip: 3, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09120300
+  INFO    machine:command_cycle Tick: 10 | Registers: rax: 0, rbx: 0, rdx: 2, rcx: 12, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09100200
+  INFO    machine:command_cycle Tick: 13 | Registers: rax: 0, rbx: 0, rdx: 3, rcx: 12, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 16 | Registers: rax: 0, rbx: 0, rdx: 3, rcx: 12, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 19 | Registers: rax: 0, rbx: 0, rdx: 3, rcx: 11, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 24 | Registers: rax: 72, rbx: 0, rdx: 3, rcx: 11, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: [] <- H
+  INFO    machine:command_cycle Tick: 27 | Registers: rax: 72, rbx: 0, rdx: 3, rcx: 11, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 30 | Registers: rax: 72, rbx: 0, rdx: 3, rcx: 11, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 32 | Registers: rax: 72, rbx: 0, rdx: 3, rcx: 11, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 34 | Registers: rax: 72, rbx: 0, rdx: 3, rcx: 11, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 37 | Registers: rax: 72, rbx: 0, rdx: 4, rcx: 11, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 40 | Registers: rax: 72, rbx: 0, rdx: 4, rcx: 11, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 43 | Registers: rax: 72, rbx: 0, rdx: 4, rcx: 10, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 48 | Registers: rax: 101, rbx: 0, rdx: 4, rcx: 10, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H'] <- e
+  INFO    machine:command_cycle Tick: 51 | Registers: rax: 101, rbx: 0, rdx: 4, rcx: 10, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 54 | Registers: rax: 101, rbx: 0, rdx: 4, rcx: 10, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 56 | Registers: rax: 101, rbx: 0, rdx: 4, rcx: 10, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 58 | Registers: rax: 101, rbx: 0, rdx: 4, rcx: 10, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 61 | Registers: rax: 101, rbx: 0, rdx: 5, rcx: 10, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 64 | Registers: rax: 101, rbx: 0, rdx: 5, rcx: 10, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 67 | Registers: rax: 101, rbx: 0, rdx: 5, rcx: 9, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 72 | Registers: rax: 108, rbx: 0, rdx: 5, rcx: 9, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e'] <- l
+  INFO    machine:command_cycle Tick: 75 | Registers: rax: 108, rbx: 0, rdx: 5, rcx: 9, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 78 | Registers: rax: 108, rbx: 0, rdx: 5, rcx: 9, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 80 | Registers: rax: 108, rbx: 0, rdx: 5, rcx: 9, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 82 | Registers: rax: 108, rbx: 0, rdx: 5, rcx: 9, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 85 | Registers: rax: 108, rbx: 0, rdx: 6, rcx: 9, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 88 | Registers: rax: 108, rbx: 0, rdx: 6, rcx: 9, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 91 | Registers: rax: 108, rbx: 0, rdx: 6, rcx: 8, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 96 | Registers: rax: 108, rbx: 0, rdx: 6, rcx: 8, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l'] <- l
+  INFO    machine:command_cycle Tick: 99 | Registers: rax: 108, rbx: 0, rdx: 6, rcx: 8, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 102 | Registers: rax: 108, rbx: 0, rdx: 6, rcx: 8, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 104 | Registers: rax: 108, rbx: 0, rdx: 6, rcx: 8, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 106 | Registers: rax: 108, rbx: 0, rdx: 6, rcx: 8, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 109 | Registers: rax: 108, rbx: 0, rdx: 7, rcx: 8, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 112 | Registers: rax: 108, rbx: 0, rdx: 7, rcx: 8, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 115 | Registers: rax: 108, rbx: 0, rdx: 7, rcx: 7, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 120 | Registers: rax: 111, rbx: 0, rdx: 7, rcx: 7, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l'] <- o
+  INFO    machine:command_cycle Tick: 123 | Registers: rax: 111, rbx: 0, rdx: 7, rcx: 7, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 126 | Registers: rax: 111, rbx: 0, rdx: 7, rcx: 7, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 128 | Registers: rax: 111, rbx: 0, rdx: 7, rcx: 7, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 130 | Registers: rax: 111, rbx: 0, rdx: 7, rcx: 7, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 133 | Registers: rax: 111, rbx: 0, rdx: 8, rcx: 7, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 136 | Registers: rax: 111, rbx: 0, rdx: 8, rcx: 7, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 139 | Registers: rax: 111, rbx: 0, rdx: 8, rcx: 6, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 144 | Registers: rax: 32, rbx: 0, rdx: 8, rcx: 6, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l', 'o'] <-  
+  INFO    machine:command_cycle Tick: 147 | Registers: rax: 32, rbx: 0, rdx: 8, rcx: 6, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 150 | Registers: rax: 32, rbx: 0, rdx: 8, rcx: 6, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 152 | Registers: rax: 32, rbx: 0, rdx: 8, rcx: 6, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 154 | Registers: rax: 32, rbx: 0, rdx: 8, rcx: 6, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 157 | Registers: rax: 32, rbx: 0, rdx: 9, rcx: 6, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 160 | Registers: rax: 32, rbx: 0, rdx: 9, rcx: 6, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 163 | Registers: rax: 32, rbx: 0, rdx: 9, rcx: 5, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 168 | Registers: rax: 119, rbx: 0, rdx: 9, rcx: 5, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l', 'o', ' '] <- w
+  INFO    machine:command_cycle Tick: 171 | Registers: rax: 119, rbx: 0, rdx: 9, rcx: 5, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 174 | Registers: rax: 119, rbx: 0, rdx: 9, rcx: 5, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 176 | Registers: rax: 119, rbx: 0, rdx: 9, rcx: 5, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 178 | Registers: rax: 119, rbx: 0, rdx: 9, rcx: 5, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 181 | Registers: rax: 119, rbx: 0, rdx: 10, rcx: 5, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 184 | Registers: rax: 119, rbx: 0, rdx: 10, rcx: 5, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 187 | Registers: rax: 119, rbx: 0, rdx: 10, rcx: 4, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 192 | Registers: rax: 111, rbx: 0, rdx: 10, rcx: 4, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l', 'o', ' ', 'w'] <- o
+  INFO    machine:command_cycle Tick: 195 | Registers: rax: 111, rbx: 0, rdx: 10, rcx: 4, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 198 | Registers: rax: 111, rbx: 0, rdx: 10, rcx: 4, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 200 | Registers: rax: 111, rbx: 0, rdx: 10, rcx: 4, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 202 | Registers: rax: 111, rbx: 0, rdx: 10, rcx: 4, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 205 | Registers: rax: 111, rbx: 0, rdx: 11, rcx: 4, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 208 | Registers: rax: 111, rbx: 0, rdx: 11, rcx: 4, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 211 | Registers: rax: 111, rbx: 0, rdx: 11, rcx: 3, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 216 | Registers: rax: 114, rbx: 0, rdx: 11, rcx: 3, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l', 'o', ' ', 'w', 'o'] <- r
+  INFO    machine:command_cycle Tick: 219 | Registers: rax: 114, rbx: 0, rdx: 11, rcx: 3, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 222 | Registers: rax: 114, rbx: 0, rdx: 11, rcx: 3, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 224 | Registers: rax: 114, rbx: 0, rdx: 11, rcx: 3, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 226 | Registers: rax: 114, rbx: 0, rdx: 11, rcx: 3, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 229 | Registers: rax: 114, rbx: 0, rdx: 12, rcx: 3, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 232 | Registers: rax: 114, rbx: 0, rdx: 12, rcx: 3, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 235 | Registers: rax: 114, rbx: 0, rdx: 12, rcx: 2, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 240 | Registers: rax: 108, rbx: 0, rdx: 12, rcx: 2, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r'] <- l
+  INFO    machine:command_cycle Tick: 243 | Registers: rax: 108, rbx: 0, rdx: 12, rcx: 2, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 246 | Registers: rax: 108, rbx: 0, rdx: 12, rcx: 2, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 248 | Registers: rax: 108, rbx: 0, rdx: 12, rcx: 2, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 250 | Registers: rax: 108, rbx: 0, rdx: 12, rcx: 2, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 253 | Registers: rax: 108, rbx: 0, rdx: 13, rcx: 2, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 256 | Registers: rax: 108, rbx: 0, rdx: 13, rcx: 2, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 259 | Registers: rax: 108, rbx: 0, rdx: 13, rcx: 1, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 264 | Registers: rax: 100, rbx: 0, rdx: 13, rcx: 1, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l'] <- d
+  INFO    machine:command_cycle Tick: 267 | Registers: rax: 100, rbx: 0, rdx: 13, rcx: 1, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 270 | Registers: rax: 100, rbx: 0, rdx: 13, rcx: 1, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 272 | Registers: rax: 100, rbx: 0, rdx: 13, rcx: 1, rip: 17, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 274 | Registers: rax: 100, rbx: 0, rdx: 13, rcx: 1, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 277 | Registers: rax: 100, rbx: 0, rdx: 14, rcx: 1, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: add | Instruction: 00100200
+  INFO    machine:command_cycle Tick: 280 | Registers: rax: 100, rbx: 0, rdx: 14, rcx: 1, rip: 9, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100200
+  INFO    machine:command_cycle Tick: 283 | Registers: rax: 100, rbx: 0, rdx: 14, rcx: 0, rip: 11, rst: 0, rsp: 65536 Flags: N = False, Z = True | Command: sub | Instruction: 01100300
+  INFO    machine:command_cycle Tick: 288 | Registers: rax: 33, rbx: 0, rdx: 14, rcx: 0, rip: 13, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09140000
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd'] <- !
+  INFO    machine:command_cycle Tick: 291 | Registers: rax: 33, rbx: 0, rdx: 14, rcx: 0, rip: 14, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: movo | Instruction: 0b130001
+  INFO    machine:command_cycle Tick: 294 | Registers: rax: 33, rbx: 0, rdx: 14, rcx: 0, rip: 16, rst: 0, rsp: 65536 Flags: N = False, Z = True | Command: cmp | Instruction: 08100300
+  INFO    machine:command_cycle Tick: 296 | Registers: rax: 33, rbx: 0, rdx: 14, rcx: 0, rip: 18, rst: 0, rsp: 65536 Flags: N = False, Z = True | Command: jz | Instruction: 0e000012
+  INFO    machine:command_cycle Tick: 298 | Registers: rax: 33, rbx: 0, rdx: 14, rcx: 0, rip: 19, rst: 0, rsp: 65536 Flags: N = False, Z = True | Command: hlt | Instruction: 16000000
+  INFO    machine:simulation    output buffer: 'Hello world!'
+

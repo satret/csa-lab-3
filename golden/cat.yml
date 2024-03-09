@@ -1,6 +1,95 @@
-- name: cat_test_multiple_lines
-  description: Tests reading multiple lines of text and outputs them until a null terminator is encountered.
-  in_source: "section .data\n    null_term: word 0\n\nsection .text\n    read_char:\n        in\n        cmp null_term\n        je .exit\n        out\n        jmp .read_char\n    exit:\n        hlt"
-  in_stdin: "Test\nLine2\x00"
-  out_stdout: "Test\nLine2"
-  out_log: "The program should read characters until a null terminator is encountered and output them as they are read. The null terminator signals the end of the input."
+in_source: |-
+  section .data
+      char: 0
+      stop_char: 10
+  section .text
+      mov %rax .read_char
+      mova %rax &ADDR_TO_INT
+      ei
+      .loop
+          mov %rax #char
+          cmp %rax #stop_char
+          jz .end
+          jmp .loop
+      .read_char
+          movi %rdx !0
+          mova %rdx &char
+          movo %rdx !1
+          iret
+      .end
+          hlt
+in_stdin: |-
+  [(10, 'H'), (20, 'e'), (25, 'l'), (30, 'l'), (40, 'o'), (50, '\n')]
+translator_log: |
+  00000 - 091000000000000b - mov %rax .read_char
+  00002 - 0c10000000000000 - mova %rax &ADDR_TO_INT
+  00004 - 15000000 - ei
+  00005 - 0912000000000001 - mov %rax #char
+  00007 - 0812000000000002 - cmp %rax #stop_char
+  00009 - 0e000010 - jz .end
+  00010 - 0d000005 - jmp .loop
+  00011 - 0a130200 - movi %rdx !0
+  00012 - 0c10020000000001 - mova %rdx &char
+  00014 - 0b130201 - movo %rdx !1
+  00015 - 13000000 - iret
+  00016 - 16000000 - hlt
+  ==============================
+  0
+  0
+  10
+out_stdout: |
+  source LoC: 19 code instr: 12
+  ============================================================
+  Hello
+
+  instr_counter: 35 ticks: 128
+machine_log: |
+  INFO    machine:command_cycle Tick: 0 | Registers: rax: 0, rbx: 0, rdx: 0, rcx: 0, rip: 0, rst: 0, rsp: 65536 Flags: N = False, Z = True | Command: nop | Instruction: 
+  INFO    machine:command_cycle Tick: 3 | Registers: rax: 11, rbx: 0, rdx: 0, rcx: 0, rip: 2, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09100000
+  INFO    machine:command_cycle Tick: 6 | Registers: rax: 11, rbx: 0, rdx: 0, rcx: 0, rip: 4, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: mova | Instruction: 0c100000
+  INFO    machine:command_cycle Tick: 8 | Registers: rax: 11, rbx: 0, rdx: 0, rcx: 0, rip: 5, rst: 0, rsp: 65536 Flags: N = False, Z = False | Command: ei | Instruction: 15000000
+  INFO    machine:command_cycle Tick: 12 | Registers: rax: 0, rbx: 0, rdx: 0, rcx: 0, rip: 7, rst: 0, rsp: 65536 Flags: N = False, Z = True | Command: mov | Instruction: 09120000
+  INFO    machine:read_port     input: H
+  INFO    machine:command_cycle TRAP:Tick: 19 | Registers: rax: 0, rbx: 0, rdx: 72, rcx: 0, rip: 12, rst: 0, rsp: 65534 Flags: N = False, Z = True | Command: movi | Instruction: 0a130200
+  INFO    machine:command_cycle TRAP:Tick: 22 | Registers: rax: 0, rbx: 0, rdx: 72, rcx: 0, rip: 14, rst: 0, rsp: 65534 Flags: N = False, Z = True | Command: mova | Instruction: 0c100200
+  INFO    machine:write_port    OUTPUT: [] <- H
+  INFO    machine:command_cycle TRAP:Tick: 25 | Registers: rax: 0, rbx: 0, rdx: 72, rcx: 0, rip: 15, rst: 0, rsp: 65534 Flags: N = False, Z = True | Command: movo | Instruction: 0b130201
+  INFO    machine:command_cycle Tick: 28 | Registers: rax: 0, rbx: 0, rdx: 72, rcx: 0, rip: 7, rst: 7, rsp: 65536 Flags: N = False, Z = True | Command: iret | Instruction: 13000000
+  INFO    machine:read_port     input: e
+  INFO    machine:command_cycle TRAP:Tick: 35 | Registers: rax: 0, rbx: 0, rdx: 101, rcx: 0, rip: 12, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movi | Instruction: 0a130200
+  INFO    machine:command_cycle TRAP:Tick: 38 | Registers: rax: 0, rbx: 0, rdx: 101, rcx: 0, rip: 14, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: mova | Instruction: 0c100200
+  INFO    machine:write_port    OUTPUT: ['H'] <- e
+  INFO    machine:command_cycle TRAP:Tick: 41 | Registers: rax: 0, rbx: 0, rdx: 101, rcx: 0, rip: 15, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movo | Instruction: 0b130201
+  INFO    machine:command_cycle Tick: 44 | Registers: rax: 0, rbx: 0, rdx: 101, rcx: 0, rip: 7, rst: 7, rsp: 65536 Flags: N = False, Z = True | Command: iret | Instruction: 13000000
+  INFO    machine:read_port     input: l
+  INFO    machine:command_cycle TRAP:Tick: 51 | Registers: rax: 0, rbx: 0, rdx: 108, rcx: 0, rip: 12, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movi | Instruction: 0a130200
+  INFO    machine:command_cycle TRAP:Tick: 54 | Registers: rax: 0, rbx: 0, rdx: 108, rcx: 0, rip: 14, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: mova | Instruction: 0c100200
+  INFO    machine:write_port    OUTPUT: ['H', 'e'] <- l
+  INFO    machine:command_cycle TRAP:Tick: 57 | Registers: rax: 0, rbx: 0, rdx: 108, rcx: 0, rip: 15, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movo | Instruction: 0b130201
+  INFO    machine:command_cycle Tick: 60 | Registers: rax: 0, rbx: 0, rdx: 108, rcx: 0, rip: 7, rst: 7, rsp: 65536 Flags: N = False, Z = True | Command: iret | Instruction: 13000000
+  INFO    machine:read_port     input: l
+  INFO    machine:command_cycle TRAP:Tick: 67 | Registers: rax: 0, rbx: 0, rdx: 108, rcx: 0, rip: 12, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movi | Instruction: 0a130200
+  INFO    machine:command_cycle TRAP:Tick: 70 | Registers: rax: 0, rbx: 0, rdx: 108, rcx: 0, rip: 14, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: mova | Instruction: 0c100200
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l'] <- l
+  INFO    machine:command_cycle TRAP:Tick: 73 | Registers: rax: 0, rbx: 0, rdx: 108, rcx: 0, rip: 15, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movo | Instruction: 0b130201
+  INFO    machine:command_cycle Tick: 76 | Registers: rax: 0, rbx: 0, rdx: 108, rcx: 0, rip: 7, rst: 7, rsp: 65536 Flags: N = False, Z = True | Command: iret | Instruction: 13000000
+  INFO    machine:read_port     input: o
+  INFO    machine:command_cycle TRAP:Tick: 83 | Registers: rax: 0, rbx: 0, rdx: 111, rcx: 0, rip: 12, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movi | Instruction: 0a130200
+  INFO    machine:command_cycle TRAP:Tick: 86 | Registers: rax: 0, rbx: 0, rdx: 111, rcx: 0, rip: 14, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: mova | Instruction: 0c100200
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l'] <- o
+  INFO    machine:command_cycle TRAP:Tick: 89 | Registers: rax: 0, rbx: 0, rdx: 111, rcx: 0, rip: 15, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movo | Instruction: 0b130201
+  INFO    machine:command_cycle Tick: 92 | Registers: rax: 0, rbx: 0, rdx: 111, rcx: 0, rip: 7, rst: 7, rsp: 65536 Flags: N = False, Z = True | Command: iret | Instruction: 13000000
+  INFO    machine:read_port     input: \n
+  INFO    machine:command_cycle TRAP:Tick: 99 | Registers: rax: 0, rbx: 0, rdx: 10, rcx: 0, rip: 12, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movi | Instruction: 0a130200
+  INFO    machine:command_cycle TRAP:Tick: 102 | Registers: rax: 0, rbx: 0, rdx: 10, rcx: 0, rip: 14, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: mova | Instruction: 0c100200
+  INFO    machine:write_port    OUTPUT: ['H', 'e', 'l', 'l', 'o'] <- \n
+  INFO    machine:command_cycle TRAP:Tick: 105 | Registers: rax: 0, rbx: 0, rdx: 10, rcx: 0, rip: 15, rst: 7, rsp: 65534 Flags: N = False, Z = True | Command: movo | Instruction: 0b130201
+  INFO    machine:command_cycle Tick: 108 | Registers: rax: 0, rbx: 0, rdx: 10, rcx: 0, rip: 7, rst: 7, rsp: 65536 Flags: N = False, Z = True | Command: iret | Instruction: 13000000
+  INFO    machine:command_cycle Tick: 112 | Registers: rax: 0, rbx: 0, rdx: 10, rcx: 0, rip: 9, rst: 7, rsp: 65536 Flags: N = True, Z = False | Command: cmp | Instruction: 08120000
+  INFO    machine:command_cycle Tick: 114 | Registers: rax: 0, rbx: 0, rdx: 10, rcx: 0, rip: 10, rst: 7, rsp: 65536 Flags: N = True, Z = False | Command: jz | Instruction: 0e000010
+  INFO    machine:command_cycle Tick: 116 | Registers: rax: 0, rbx: 0, rdx: 10, rcx: 0, rip: 5, rst: 7, rsp: 65536 Flags: N = True, Z = False | Command: jmp | Instruction: 0d000005
+  INFO    machine:command_cycle Tick: 120 | Registers: rax: 10, rbx: 0, rdx: 10, rcx: 0, rip: 7, rst: 7, rsp: 65536 Flags: N = False, Z = False | Command: mov | Instruction: 09120000
+  INFO    machine:command_cycle Tick: 124 | Registers: rax: 10, rbx: 0, rdx: 10, rcx: 0, rip: 9, rst: 7, rsp: 65536 Flags: N = False, Z = True | Command: cmp | Instruction: 08120000
+  INFO    machine:command_cycle Tick: 126 | Registers: rax: 10, rbx: 0, rdx: 10, rcx: 0, rip: 16, rst: 7, rsp: 65536 Flags: N = False, Z = True | Command: jz | Instruction: 0e000010
+  INFO    machine:command_cycle Tick: 128 | Registers: rax: 10, rbx: 0, rdx: 10, rcx: 0, rip: 17, rst: 7, rsp: 65536 Flags: N = False, Z = True | Command: hlt | Instruction: 16000000
+  INFO    machine:simulation    output buffer: 'Hello\n'

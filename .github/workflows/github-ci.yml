@@ -1,6 +1,13 @@
+name: Python CI
+
+on:
+  push:
+    branches:
+      - '*'
+
 jobs:
   csa-lab-3:
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
 
     steps:
     - name: Checkout code
@@ -17,6 +24,14 @@ jobs:
         pip install poetry
         poetry install
 
-    - name: Run tests in machine folder
+    - name: Run tests and coverage
       run: |
-        poetry run pytest machine/
+        poetry run coverage run -m pytest ./integration_test.py
+        poetry run coverage report -m
+
+    - name: Check code formatting
+      run: poetry run ruff format --check .
+
+    - name: Run code linting
+      run: |
+        poetry run ruff check .
