@@ -15,7 +15,7 @@ def load_golden_data(filename):
 
 @pytest.mark.parametrize("filename", ["cat.yml", "hello.yml", "prob2.yml"])
 def test_golden(filename, caplog):
-    golden_path = os.path.join("goldens", filename)
+    golden_path = os.path.join("golden", filename)
     golden_data = load_golden_data(golden_path)[0]
 
     asm_files = {
