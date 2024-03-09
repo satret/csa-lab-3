@@ -1,17 +1,6 @@
 - name: cat_test_multiple_lines
   description: Tests reading multiple lines of text and outputs them until a null terminator is encountered.
-  in_source: |-
-    ; Your cat.asm program setup here
-  in_stdin: |-
-    [(10, 'T'), (20, 'e'), (30, 's'), (40, 't'), (50, '\n'),
-     (60, 'L'), (70, 'i'), (80, 'n'), (90, 'e'), (100, '2'), (110, '\0')]
-  out_code: |-
-    ; Expected instruction outcomes after running your program
-  out_stdout: |-
-    source LoC: <line_count> code instr: <instruction_count>
-    ============================================================
-    Output: ['Test', 'Line2']
-    Instruction number: <total_instructions_run>
-    Ticks: <total_ticks>
-  out_log: |-
-    ; Expected log detailing execution steps
+  in_source: "section .data\n    null_term: word 0\n\nsection .text\n    read_char:\n        in\n        cmp null_term\n        je .exit\n        out\n        jmp .read_char\n    exit:\n        hlt"
+  in_stdin: "Test\nLine2\x00"
+  out_stdout: "Test\nLine2"
+  out_log: "The program should read characters until a null terminator is encountered and output them as they are read. The null terminator signals the end of the input."

@@ -1,16 +1,6 @@
 - name: hello_test_basic_output
   description: Tests printing "hello world" hardcoded in the program without any input.
-  in_source: |-
-    ; Your hello.asm program setup here
-  in_stdin: |-
-    ; No input required as the string is hardcoded
-  out_code: |-
-    ; Expected instruction outcomes after running your program
-  out_stdout: |-
-    source LoC: <line_count> code instr: <instruction_count>
-    ============================================================
-    Output: ['hello world']
-    Instruction number: <total_instructions_run>
-    Ticks: <total_ticks>
-  out_log: |-
-    ; Expected log detailing execution steps
+  in_source: "section .data\n    curr_char: word 1\n    hellow: db 'hello world'\n    null_term: word 0\n\nsection .text\n    print:\n        ld $curr_char  ; загружаю символ по адресу curr_char\n        cmp #0  ; сравниваю, закончилась ли строка\n        je .exit\n        out\n        ld curr_char\n        add #1\n        st curr_char\n        jmp .print\n    exit:\n        hlt"
+  in_stdin: ""
+  out_stdout: "hello world"
+  out_log: "The program should output the hardcoded string 'hello world' without requiring any input."
